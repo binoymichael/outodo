@@ -29,18 +29,18 @@ function createChildFor(parentNode) {
 };
 
 function render(node) {
-  var nodeDiv = $('<div />');
-  nodeDiv.attr('id', node.id);
-  nodeDiv.attr('contentEditable','true');
-  $('#main').append(nodeDiv);
-  nodeDiv.focus();
+  var nodeItem = $('<li />');
+  nodeItem.attr('id', node.id);
+  nodeItem.attr('contentEditable','true');
+  $('#main').append(nodeItem);
+  nodeItem.focus();
 
-  nodeDiv.blur(function() {
-    objectTable[node.id].data = nodeDiv.text();
+  nodeItem.blur(function() {
+    objectTable[node.id].data = nodeItem.text();
     console.log(JSON.stringify(rootNode));
   });
 
-  nodeDiv.keydown(function(event) {
+  nodeItem.keydown(function(event) {
     if (event.keyCode == 13) {
       event.preventDefault();
       event.stopPropagation();
@@ -55,5 +55,5 @@ function render(node) {
 var firstNode = createChildFor(rootNode);
 render(firstNode);
 
-$('#main div').focus();
+$('#main li').focus();
 
