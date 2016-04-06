@@ -118,8 +118,10 @@ function giveNodeSomePower(nodeItem) {
     } else if (event.keyCode == TABKEY) {
       event.preventDefault();
       node.data = nodeSpan.text();
-      changeParentToPrevItem(node);
-      indentRight(node);
+      if (!nodeItem.is(':first-child')) {
+        changeParentToPrevItem(node);
+        indentRight(node);
+      }
     }
   });
 
@@ -142,23 +144,6 @@ function render(node, first = false) {
     parentNode.append(nodeItem);
     giveNodeSomePower(nodeItem);
   }
-
-  // if (first) {
-  //   var parentNode = $(jq(node.parentId));
-  //   parentNode.append(nodeItem);
-  //   giveNodeSomePower(nodeItem);
-  // } else {
-  //   var parentNode = $(jq(node.parentId));
-
-  //   console.log(parentNode);
-  //   parentNode = $('ul', parentNode);
-  //   console.log(parentNode);
-  //   parentNode.append(nodeItem);
-  //   // giveNodeSomePower(nodeItem);
-  // }
-
-  // var parentNode = $(jq(node.parentId));
-
 }
 
 
