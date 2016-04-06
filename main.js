@@ -1,3 +1,7 @@
+function jq(myid) {
+  return "#" + myid;
+};
+
 var ID = function () {
   // Math.random should be unique because of its seeding algorithm.
   // Convert it to base 36 (numbers + letters), and grab the first 9 characters
@@ -5,12 +9,36 @@ var ID = function () {
   return '_' + Math.random().toString(36).substr(2, 9);
 };
 
+function placeCaretAtEnd(el) {
+    el.focus();
+    if (typeof window.getSelection != "undefined"
+            && typeof document.createRange != "undefined") {
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        range.collapse(false);
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+    } else if (typeof document.body.createTextRange != "undefined") {
+        var textRange = document.body.createTextRange();
+        textRange.moveToElementText(el);
+        textRange.collapse(false);
+        textRange.select();
+    }
+}
+
 var rootNode = new Node(null, null);
 var objectTable = {};
 function addToObjectTable(node) {
   objectTable[node.id] = node;
 };
 addToObjectTable(rootNode);
+var container = $('#container');
+var rootUL = $('<ul />');
+rootUL.attr('id', rootNode.id);
+// rootUL.attr('id', 'main');
+rootUL.attr('class', 'main');
+container.append(rootUL)
 
 
 
@@ -23,37 +51,123 @@ function Node(data, parentId = null) {
 
 function createChildFor(parentNode) {
   var child = new Node('', parentNode.id);
-  parentNode.children.push(child);
+  parentNode.children.push(child.id);
   addToObjectTable(child);
   return child;
 };
 
-function render(node) {
-  var nodeItem = $('<li />');
-  nodeItem.attr('id', node.id);
-  nodeItem.attr('contentEditable','true');
-  $('#main').append(nodeItem);
-  nodeItem.focus();
+function changeParentToPrevItem(node) {
+  var item = $(jq(node.id));
+  var prevItemId = item.prev().attr('id');
 
-  nodeItem.blur(function() {
-    objectTable[node.id].data = nodeItem.text();
-    console.log(JSON.stringify(rootNode));
+  var itemObject = objectTable[node.id];
+  var newParent = objectTable[prevItemId];
+  var oldParent = objectTable[node.parentId];
+
+  itemObject.parentId = prevItemId;
+  newParent.children.push(itemObject.id);
+  oldParent.children = oldParent.children.filter(function(childId) {
+    return childId !== node.id;
+  });
+};
+
+function indentRight(node) {
+  var nodeId = node.id;
+  var node = $(jq(nodeId));
+  var prevNode = node.prev();
+  node.unbind();
+  node.remove();
+  console.log("removing power from " + nodeId);
+
+  var nodeObject = objectTable[nodeId];
+  var indentWrapper = $('<ul />');
+  var regeneratedNode = $('<li />');
+  regeneratedNode.attr('id', nodeId);
+
+  var span = $('<span />');
+  span.attr('contentEditable','true');
+  span.text(nodeObject.data);
+  regeneratedNode.append(span);
+
+  indentWrapper.append(regeneratedNode);
+  prevNode.append(indentWrapper);
+  giveNodeSomePower(regeneratedNode);
+}
+
+function giveNodeSomePower(nodeItem) {
+  var node = objectTable[nodeItem.attr('id')];
+  var nodeSpan = $('span:first', nodeItem);
+
+  placeCaretAtEnd(nodeSpan.get(0));
+  // nodeSpan.focus();
+
+  nodeSpan.blur(function() {
+    node.data = nodeSpan.text();
   });
 
-  nodeItem.keydown(function(event) {
-    if (event.keyCode == 13) {
+  nodeSpan.keydown(function(event) {
+    var ENTERKEY = 13;
+    var TABKEY = 9;
+    if (event.keyCode == ENTERKEY) {
       event.preventDefault();
       event.stopPropagation();
+      node.data = nodeSpan.text();
       var parentNode = objectTable[node.parentId];
       var newNode = createChildFor(parentNode);
       render(newNode);
+    } else if (event.keyCode == TABKEY) {
+      event.preventDefault();
+      node.data = nodeSpan.text();
+      changeParentToPrevItem(node);
+      indentRight(node);
     }
   });
+
+}
+
+function render(node, first = false) {
+  var nodeItem = $('<li />');
+  nodeItem.attr('id', node.id);
+
+  var span = $('<span />');
+  span.attr('contentEditable','true');
+  nodeItem.append(span);
+
+  var parentNode = $(jq(node.parentId));
+  if (parentNode.is('ul')) {
+    parentNode.append(nodeItem);
+    giveNodeSomePower(nodeItem);
+  } else {
+    parentNode = $('ul', parentNode);
+    parentNode.append(nodeItem);
+    giveNodeSomePower(nodeItem);
+  }
+
+  // if (first) {
+  //   var parentNode = $(jq(node.parentId));
+  //   parentNode.append(nodeItem);
+  //   giveNodeSomePower(nodeItem);
+  // } else {
+  //   var parentNode = $(jq(node.parentId));
+
+  //   console.log(parentNode);
+  //   parentNode = $('ul', parentNode);
+  //   console.log(parentNode);
+  //   parentNode.append(nodeItem);
+  //   // giveNodeSomePower(nodeItem);
+  // }
+
+  // var parentNode = $(jq(node.parentId));
+
 }
 
 
-var firstNode = createChildFor(rootNode);
-render(firstNode);
 
-$('#main li').focus();
+var firstNode = createChildFor(rootNode);
+render(firstNode, true);
+
+$('p').click(function() {
+  console.log(JSON.stringify(rootNode));
+  console.log(JSON.stringify(objectTable));
+});
 
