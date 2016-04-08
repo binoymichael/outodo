@@ -174,6 +174,7 @@ function giveNodeSomePower(nodeItem) {
       var parentNode = objectTable[node.parentId];
       var newNode = createChildFor(parentNode);
       rerender(newNode.parentId);
+      positionCaret(newNode);
       // render(newNode);
     } else if (event.keyCode == TABKEY) {
       event.preventDefault();
@@ -182,6 +183,7 @@ function giveNodeSomePower(nodeItem) {
         if (node.parentId !== rootNode.id) {
           shiftNodeLeft(node);
           rerender(objectTable[node.id].parentId);
+          positionCaret(node);
         } 
       } else {
         if (!nodeItem.is(':first-child')) {
@@ -189,12 +191,19 @@ function giveNodeSomePower(nodeItem) {
           // console.log(objectTable[node.id].parentId);
           removeNode(node.id);
           rerender(objectTable[node.id].parentId);
+          positionCaret(node);
           // indentRight(node);
         }
       }
     }
   });
 
+}
+
+function positionCaret(node) {
+  var node = $(jq(node.id));
+  var nodeSpan = $('span:first', node);
+  placeCaretAtEnd(nodeSpan.get(0));
 }
 
 function render(node, first = false) {
@@ -214,6 +223,7 @@ function render(node, first = false) {
     parentNode.append(nodeItem);
     giveNodeSomePower(nodeItem);
   }
+  positionCaret(node);
 }
 
 
