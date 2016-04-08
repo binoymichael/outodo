@@ -84,6 +84,37 @@ function shiftNodeLeft(node) {
   });
 };
 
+function rerender(nodeId) {
+  var currentElement = $(jq(nodeId));
+  var currentElementObject = objectTable[nodeId];
+  currentElement.empty();
+
+  if (currentElement.is('ul')) {
+    for (let childId of currentElementObject.children) {
+      var childNode = $('<li />');
+      childNode.attr('id', childId);
+      currentElement.append(childNode);
+      rerender(childId);
+    }
+  } else {
+    var span = $('<span />');
+    span.attr('contentEditable','true');
+    span.text(currentElementObject.data);
+    currentElement.append(span);
+    giveNodeSomePower(currentElement);
+
+    var childTree = $('<ul />');
+    currentElement.append(childTree);
+
+    for (let childId of currentElementObject.children) {
+      var childNode = $('<li />');
+      childNode.attr('id', childId);
+      childTree.append(childNode);
+      rerender(childId);
+    }
+  }
+}
+
 function indentLeft(node) {
   var nodeId = node.id
   var nodeElement = $(jq(nodeId));
@@ -153,7 +184,8 @@ function giveNodeSomePower(nodeItem) {
       node.data = nodeSpan.text();
       if (event.shiftKey) {
         shiftNodeLeft(node);
-        indentLeft(node);
+        // indentLeft(node);
+        rerender(objectTable[node.id].parentId);
       } else {
         if (!nodeItem.is(':first-child')) {
           changeParentToPrevItem(node);

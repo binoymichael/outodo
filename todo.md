@@ -1,4 +1,5 @@
 Todos:
+- Indent right when node has smaller siblings
 - Indent left functionality for node with children
 - Item alreay has a child. Hitting enter from item create a new child before current child
 
