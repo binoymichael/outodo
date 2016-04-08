@@ -178,13 +178,13 @@ function giveNodeSomePower(nodeItem) {
       node.data = nodeSpan.text();
       var parentNode = objectTable[node.parentId];
       var newNode = createChildFor(parentNode);
-      render(newNode);
+      rerender(newNode.parentId);
+      // render(newNode);
     } else if (event.keyCode == TABKEY) {
       event.preventDefault();
       node.data = nodeSpan.text();
       if (event.shiftKey) {
         shiftNodeLeft(node);
-        // indentLeft(node);
         rerender(objectTable[node.id].parentId);
       } else {
         if (!nodeItem.is(':first-child')) {
