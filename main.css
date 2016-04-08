@@ -19,6 +19,14 @@ ul {
   list-style-type: disc;
 }
 
+.header-cont {
+    width:100%;
+    position:fixed;
+    top: 10px;
+    left: 285px;
+
+}
+
 [contenteditable="true"]:active,
 [contenteditable="true"]:focus{
   border:none;
