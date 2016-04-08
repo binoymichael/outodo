@@ -56,15 +56,15 @@ function createChildFor(parentNode) {
   return child;
 };
 
-function changeParentToPrevItem(node) {
-  var item = $(jq(node.id));
-  var prevItemId = item.prev().attr('id');
+function shiftNodeRight(node) {
+  var oldParent = objectTable[node.parentId];
+  var prevSiblingIndex =  oldParent.children.indexOf(node.id) - 1;
+  var newParentId = oldParent.children[prevSiblingIndex];
 
   var itemObject = objectTable[node.id];
-  var newParent = objectTable[prevItemId];
-  var oldParent = objectTable[node.parentId];
+  var newParent = objectTable[newParentId];
 
-  itemObject.parentId = prevItemId;
+  itemObject.parentId = newParentId;
   newParent.children.push(itemObject.id);
   oldParent.children = oldParent.children.filter(function(childId) {
     return childId !== node.id;
@@ -72,13 +72,23 @@ function changeParentToPrevItem(node) {
 };
 
 function shiftNodeLeft(node) {
-  var currentElement = $(jq(node.id));
   var currentElementObject = objectTable[node.id];
   var currentParentObject = objectTable[node.parentId];
-  var newParentObject = objectTable[currentParentObject.parentId];
 
+  var currentObjectIndex = currentParentObject.children.indexOf(node.id);
+  while(currentParentObject.children[currentObjectIndex + 1] !== undefined) {
+    var siblingObject = objectTable[currentParentObject.children[currentObjectIndex + 1]];
+    console.log(siblingObject.id);
+    shiftNodeRight(siblingObject);
+  }
+
+
+
+  var newParentObject = objectTable[currentParentObject.parentId];
   currentElementObject.parentId = newParentObject.id;
-  newParentObject.children.push(currentElementObject.id);
+  var currentParentObjectIndex = newParentObject.children.indexOf( currentParentObject.id); 
+
+  newParentObject.children.splice(currentParentObjectIndex + 1, 0, currentElementObject.id);
   currentParentObject.children = currentParentObject.children.filter(function(childId) {
     return childId !== node.id;
   });
@@ -115,24 +125,10 @@ function rerender(nodeId) {
   }
 }
 
-function indentLeft(node) {
-  var nodeId = node.id
-  var nodeElement = $(jq(nodeId));
-  var nodeElementContainer = nodeElement.closest('ul');
-  nodeElementContainer.remove();
-
-  var currentElementObject = objectTable[node.id];
-  var newParentElement = $(jq(currentElementObject.parentId));
-  var regeneratedNode = $('<li />');
-  regeneratedNode.attr('id', node.id);
-
-  var span = $('<span />');
-  span.attr('contentEditable','true');
-  span.text(currentElementObject.data);
-  regeneratedNode.append(span);
-
-  newParentElement.append(regeneratedNode);
-  giveNodeSomePower(regeneratedNode);
+function removeNode(nodeId) {
+  var node = $(jq(nodeId));
+  node.unbind();
+  node.remove();
 }
 
 function indentRight(node) {
@@ -141,7 +137,6 @@ function indentRight(node) {
   var prevNode = node.prev();
   node.unbind();
   node.remove();
-  console.log("removing power from " + nodeId);
 
   var nodeObject = objectTable[nodeId];
   var indentWrapper = $('<ul />');
@@ -184,12 +179,17 @@ function giveNodeSomePower(nodeItem) {
       event.preventDefault();
       node.data = nodeSpan.text();
       if (event.shiftKey) {
-        shiftNodeLeft(node);
-        rerender(objectTable[node.id].parentId);
+        if (node.parentId !== rootNode.id) {
+          shiftNodeLeft(node);
+          rerender(objectTable[node.id].parentId);
+        } 
       } else {
         if (!nodeItem.is(':first-child')) {
-          changeParentToPrevItem(node);
-          indentRight(node);
+          shiftNodeRight(node);
+          // console.log(objectTable[node.id].parentId);
+          removeNode(node.id);
+          rerender(objectTable[node.id].parentId);
+          // indentRight(node);
         }
       }
     }

@@ -1,6 +1,5 @@
 Todos:
 - Indent right when node has smaller siblings
-- Indent left functionality for node with children
 - Item alreay has a child. Hitting enter from item create a new child before current child
 
 Done:
@@ -11,6 +10,7 @@ Done:
 - css positioning to render tabbed node: opted for ul/li mode
 - Mulitple tab functionality: tab shouldnt work if its a first child
 - Indent left functionality for node without children
+- Indent left functionality for node with children
 
 Known bugs:
 
