@@ -68,6 +68,34 @@ function createChildFor(parentNode) {
   return child;
 };
 
+function createNewNode(sibling) {
+  if (sibling) {
+    if (sibling.children.length > 0) {
+      var parent = sibling;
+    } else {
+      var parent = objectTable[sibling.parentId];
+    }
+  } else {
+    var parent = objectTable[rootNode.id];
+  }
+
+  var child = new Node('', parent.id);
+
+  if (sibling) {
+    if (sibling.children.length > 0) {
+      parent.children.splice(0, 0, child.id);
+    } else {
+      var siblingIndex = parent.children.indexOf(sibling.id);
+      parent.children.splice(siblingIndex + 1, 0, child.id);
+    }
+  } else {
+    parent.children.push(child.id);
+  }
+
+  addToObjectTable(child);
+  return child;
+}
+
 function deleteNode(node) {
   var parent = objectTable[node.parentId];
   parent.children = parent.children.filter(function(childId) {
@@ -204,8 +232,9 @@ function giveNodeSomePower(nodeItem) {
       event.stopPropagation();
       node.data = nodeSpan.text();
       store();
-      var parentNode = objectTable[node.parentId];
-      var newNode = createChildFor(parentNode);
+      // var parentNode = objectTable[node.parentId];
+      // var newNode = createChildFor(parentNode);
+      var newNode = createNewNode(node);
       rerender(newNode.parentId);
       positionCaret(newNode);
       // render(newNode);
@@ -269,15 +298,21 @@ function render(node, first = false) {
 
 
 if (localStorage['rootNode'] == undefined) {
-  var firstNode = createChildFor(rootNode);
+  var firstNode = createNewNode(null)
   render(firstNode, true);
 } else {
   rerender(rootNode.id);
 }
 
 
-$('p').click(function() {
+$('#debug').click(function() {
   console.log(JSON.stringify(rootNode));
   console.log(JSON.stringify(objectTable));
+});
+
+$('#reset').click(function() {
+  delete localStorage['rootNode'];
+  delete localStorage['objectTable'];
+  window.location.reload();
 });
 
