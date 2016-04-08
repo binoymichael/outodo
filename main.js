@@ -27,18 +27,30 @@ function placeCaretAtEnd(el) {
     }
 }
 
-var rootNode = new Node(null, null);
+var rootNode;
 var objectTable = {};
+
 function addToObjectTable(node) {
   objectTable[node.id] = node;
 };
-addToObjectTable(rootNode);
-var container = $('#container');
-var rootUL = $('<ul />');
-rootUL.attr('id', rootNode.id);
-// rootUL.attr('id', 'main');
-rootUL.attr('class', 'main');
-container.append(rootUL)
+
+if (localStorage['rootNode'] == undefined) {
+  rootNode = new Node(null, null);
+  addToObjectTable(rootNode);
+  var container = $('#container');
+  var rootUL = $('<ul />');
+  rootUL.attr('id', rootNode.id);
+  rootUL.attr('class', 'main');
+  container.append(rootUL)
+} else {
+  rootNode = JSON.parse(localStorage['rootNode']);
+  objectTable = JSON.parse(localStorage['objectTable']);
+  var container = $('#container');
+  var rootUL = $('<ul />');
+  rootUL.attr('id', rootNode.id);
+  rootUL.attr('class', 'main');
+  container.append(rootUL)
+}
 
 
 
@@ -153,6 +165,11 @@ function indentRight(node) {
   giveNodeSomePower(regeneratedNode);
 }
 
+function store() {
+  localStorage['rootNode'] = JSON.stringify(rootNode);
+  localStorage['objectTable'] = JSON.stringify(objectTable);
+}
+
 function giveNodeSomePower(nodeItem) {
   var node = objectTable[nodeItem.attr('id')];
   var nodeSpan = $('span:first', nodeItem);
@@ -162,6 +179,7 @@ function giveNodeSomePower(nodeItem) {
 
   nodeSpan.blur(function() {
     node.data = nodeSpan.text();
+    store();
   });
 
   nodeSpan.keydown(function(event) {
@@ -171,6 +189,7 @@ function giveNodeSomePower(nodeItem) {
       event.preventDefault();
       event.stopPropagation();
       node.data = nodeSpan.text();
+      store();
       var parentNode = objectTable[node.parentId];
       var newNode = createChildFor(parentNode);
       rerender(newNode.parentId);
@@ -179,6 +198,7 @@ function giveNodeSomePower(nodeItem) {
     } else if (event.keyCode == TABKEY) {
       event.preventDefault();
       node.data = nodeSpan.text();
+      store();
       if (event.shiftKey) {
         if (node.parentId !== rootNode.id) {
           shiftNodeLeft(node);
@@ -227,12 +247,16 @@ function render(node, first = false) {
 }
 
 
+if (localStorage['rootNode'] == undefined) {
+  var firstNode = createChildFor(rootNode);
+  render(firstNode, true);
+} else {
+  rerender(rootNode.id);
+}
 
-var firstNode = createChildFor(rootNode);
-render(firstNode, true);
 
 $('p').click(function() {
-  console.log(JSON.stringify(rootNode));
-  console.log(JSON.stringify(objectTable));
+  console.log(JSON.stringify(rootNode).length);
+  console.log(JSON.stringify(objectTable).length);
 });
 

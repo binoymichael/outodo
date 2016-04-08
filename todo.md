@@ -1,6 +1,7 @@
 Todos:
-- Indent right when node has smaller siblings
+- backspace delete
 - Item alreay has a child. Hitting enter from item create a new child before current child
+- Caret navigation
 
 Done:
 - Create a basic node on load
@@ -11,6 +12,8 @@ Done:
 - Mulitple tab functionality: tab shouldnt work if its a first child
 - Indent left functionality for node without children
 - Indent left functionality for node with children
+- Indent right when node has smaller siblings
+- persistence: basic localstorage persistence
 
 Known bugs:
 
