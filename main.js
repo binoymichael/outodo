@@ -71,6 +71,39 @@ function changeParentToPrevItem(node) {
   });
 };
 
+function shiftNodeLeft(node) {
+  var currentElement = $(jq(node.id));
+  var currentElementObject = objectTable[node.id];
+  var currentParentObject = objectTable[node.parentId];
+  var newParentObject = objectTable[currentParentObject.parentId];
+
+  currentElementObject.parentId = newParentObject.id;
+  newParentObject.children.push(currentElementObject.id);
+  currentParentObject.children = currentParentObject.children.filter(function(childId) {
+    return childId !== node.id;
+  });
+};
+
+function indentLeft(node) {
+  var nodeId = node.id
+  var nodeElement = $(jq(nodeId));
+  var nodeElementContainer = nodeElement.closest('ul');
+  nodeElementContainer.remove();
+
+  var currentElementObject = objectTable[node.id];
+  var newParentElement = $(jq(currentElementObject.parentId));
+  var regeneratedNode = $('<li />');
+  regeneratedNode.attr('id', node.id);
+
+  var span = $('<span />');
+  span.attr('contentEditable','true');
+  span.text(currentElementObject.data);
+  regeneratedNode.append(span);
+
+  newParentElement.append(regeneratedNode);
+  giveNodeSomePower(regeneratedNode);
+}
+
 function indentRight(node) {
   var nodeId = node.id;
   var node = $(jq(nodeId));
@@ -118,9 +151,14 @@ function giveNodeSomePower(nodeItem) {
     } else if (event.keyCode == TABKEY) {
       event.preventDefault();
       node.data = nodeSpan.text();
-      if (!nodeItem.is(':first-child')) {
-        changeParentToPrevItem(node);
-        indentRight(node);
+      if (event.shiftKey) {
+        shiftNodeLeft(node);
+        indentLeft(node);
+      } else {
+        if (!nodeItem.is(':first-child')) {
+          changeParentToPrevItem(node);
+          indentRight(node);
+        }
       }
     }
   });
