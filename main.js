@@ -261,13 +261,25 @@ function giveNodeSomePower(nodeItem) {
         if (!(node.parentId == rootNode.id && objectTable[rootNode.id].children.length == 1)) {
           event.preventDefault();
           var parentId = node.parentId;
+          var closest = closestMember(node);
           deleteNode(node);
           rerender(parentId);
+          positionCaret(closest);
         }
       }
     }
   });
 
+}
+
+function closestMember(node) {
+  var parent = objectTable[node.parentId];
+  var currentNodeIndex = parent.children.indexOf(node.id);
+  if (currentNodeIndex == 0) {
+    return parent;
+  } else {
+    return objectTable[parent.children[currentNodeIndex - 1]];
+  }
 }
 
 function positionCaret(node) {
