@@ -1,5 +1,5 @@
 Todos:
-- backspace delete
+- delete key in linux/windows m/xs
 - Item alreay has a child. Hitting enter from item create a new child before current child
 - Caret navigation
 
@@ -14,6 +14,7 @@ Done:
 - Indent left functionality for node with children
 - Indent right when node has smaller siblings
 - persistence: basic localstorage persistence
+- backspace delete
 
 Known bugs:
 

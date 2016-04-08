@@ -68,6 +68,19 @@ function createChildFor(parentNode) {
   return child;
 };
 
+function deleteNode(node) {
+  var parent = objectTable[node.parentId];
+  parent.children = parent.children.filter(function(childId) {
+    return childId !== node.id;
+  });
+  if (node.parentId == rootNode.id) {
+    rootNode.children = rootNode.children.filter(function(childId) {
+      return childId != node.id;
+    });
+  }
+  delete objectTable[node.id];
+}
+
 function shiftNodeRight(node) {
   var oldParent = objectTable[node.parentId];
   var prevSiblingIndex =  oldParent.children.indexOf(node.id) - 1;
@@ -143,27 +156,27 @@ function removeNode(nodeId) {
   node.remove();
 }
 
-function indentRight(node) {
-  var nodeId = node.id;
-  var node = $(jq(nodeId));
-  var prevNode = node.prev();
-  node.unbind();
-  node.remove();
+// function indentRight(node) {
+//   var nodeId = node.id;
+//   var node = $(jq(nodeId));
+//   var prevNode = node.prev();
+//   node.unbind();
+//   node.remove();
 
-  var nodeObject = objectTable[nodeId];
-  var indentWrapper = $('<ul />');
-  var regeneratedNode = $('<li />');
-  regeneratedNode.attr('id', nodeId);
+//   var nodeObject = objectTable[nodeId];
+//   var indentWrapper = $('<ul />');
+//   var regeneratedNode = $('<li />');
+//   regeneratedNode.attr('id', nodeId);
 
-  var span = $('<span />');
-  span.attr('contentEditable','true');
-  span.text(nodeObject.data);
-  regeneratedNode.append(span);
+//   var span = $('<span />');
+//   span.attr('contentEditable','true');
+//   span.text(nodeObject.data);
+//   regeneratedNode.append(span);
 
-  indentWrapper.append(regeneratedNode);
-  prevNode.append(indentWrapper);
-  giveNodeSomePower(regeneratedNode);
-}
+//   indentWrapper.append(regeneratedNode);
+//   prevNode.append(indentWrapper);
+//   giveNodeSomePower(regeneratedNode);
+// }
 
 function store() {
   localStorage['rootNode'] = JSON.stringify(rootNode);
@@ -185,6 +198,7 @@ function giveNodeSomePower(nodeItem) {
   nodeSpan.keydown(function(event) {
     var ENTERKEY = 13;
     var TABKEY = 9;
+    var BACKSPACE = 8;
     if (event.keyCode == ENTERKEY) {
       event.preventDefault();
       event.stopPropagation();
@@ -208,11 +222,18 @@ function giveNodeSomePower(nodeItem) {
       } else {
         if (!nodeItem.is(':first-child')) {
           shiftNodeRight(node);
-          // console.log(objectTable[node.id].parentId);
           removeNode(node.id);
           rerender(objectTable[node.id].parentId);
           positionCaret(node);
-          // indentRight(node);
+        }
+      }
+    } else if (event.keyCode == BACKSPACE) {
+      if (!nodeSpan.text()) {
+        if (!(node.parentId == rootNode.id && objectTable[rootNode.id].children.length == 1)) {
+          event.preventDefault();
+          var parentId = node.parentId;
+          deleteNode(node);
+          rerender(parentId);
         }
       }
     }
@@ -256,7 +277,7 @@ if (localStorage['rootNode'] == undefined) {
 
 
 $('p').click(function() {
-  console.log(JSON.stringify(rootNode).length);
-  console.log(JSON.stringify(objectTable).length);
+  console.log(JSON.stringify(rootNode));
+  console.log(JSON.stringify(objectTable));
 });
 
