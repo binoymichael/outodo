@@ -9,23 +9,46 @@ var ID = function () {
   return '_' + Math.random().toString(36).substr(2, 9);
 };
 
-function placeCaretAtEnd(el) {
-    el.focus();
-    if (typeof window.getSelection != "undefined"
-            && typeof document.createRange != "undefined") {
-        var range = document.createRange();
-        range.selectNodeContents(el);
-        range.collapse(false);
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(range);
-    } else if (typeof document.body.createTextRange != "undefined") {
-        var textRange = document.body.createTextRange();
-        textRange.moveToElementText(el);
-        textRange.collapse(false);
-        textRange.select();
-    }
+function createCaretPlacer(atStart) {
+    return function(el) {
+        el.focus();
+        if (typeof window.getSelection != "undefined"
+                && typeof document.createRange != "undefined") {
+            var range = document.createRange();
+            range.selectNodeContents(el);
+            range.collapse(atStart);
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+        } else if (typeof document.body.createTextRange != "undefined") {
+            var textRange = document.body.createTextRange();
+            textRange.moveToElementText(el);
+            textRange.collapse(atStart);
+            textRange.select();
+        }
+    };
 }
+
+var placeCaretAtStart = createCaretPlacer(true);
+var placeCaretAtEnd = createCaretPlacer(false);
+
+// function placeCaretAtEnd(el) {
+//     el.focus();
+//     if (typeof window.getSelection != "undefined"
+//             && typeof document.createRange != "undefined") {
+//         var range = document.createRange();
+//         range.selectNodeContents(el);
+//         range.collapse(false);
+//         var sel = window.getSelection();
+//         sel.removeAllRanges();
+//         sel.addRange(range);
+//     } else if (typeof document.body.createTextRange != "undefined") {
+//         var textRange = document.body.createTextRange();
+//         textRange.moveToElementText(el);
+//         textRange.collapse(false);
+//         textRange.select();
+//     }
+// }
 
 var rootNode;
 var objectTable = {};
@@ -227,6 +250,8 @@ function giveNodeSomePower(nodeItem) {
     var ENTERKEY = 13;
     var TABKEY = 9;
     var BACKSPACE = 8;
+    var DOWNKEY = 40;
+    var UPKEY = 38;
     if (event.keyCode == ENTERKEY) {
       event.preventDefault();
       event.stopPropagation();
@@ -261,25 +286,70 @@ function giveNodeSomePower(nodeItem) {
         if (!(node.parentId == rootNode.id && objectTable[rootNode.id].children.length == 1)) {
           event.preventDefault();
           var parentId = node.parentId;
-          var closest = closestMember(node);
+          var closest = previousNode(node);
           deleteNode(node);
           rerender(parentId);
           positionCaret(closest);
         }
       }
+    } else if (event.keyCode == UPKEY) {
+      event.preventDefault();
+      var prevLeaf = previousNode(node);
+      positionCaret(prevLeaf);
+    } else if (event.keyCode == DOWNKEY) {
+      event.preventDefault();
+      var nextLeaf = nextNode(node);
+      positionCaretAtStart(nextLeaf);
     }
   });
 
 }
 
-function closestMember(node) {
+function nextNode(node) {
+  if (node.children.length > 0) {
+    return objectTable[node.children[0]];
+  } else {
+    var parent = objectTable[node.parentId];
+    var currentNodeIndex = parent.children.indexOf(node.id);
+    if (currentNodeIndex == parent.children.length - 1) {
+      var grandparent = objectTable[parent.parentId];
+      if (grandparent == undefined) {
+        return node
+      } else {
+        currentParentIndex = grandparent.children.indexOf(parent.id);
+        var uncleId = grandparent.children[currentParentIndex + 1];
+        var uncle = objectTable[uncleId];
+        return uncle;
+      }
+    } else {
+      var siblingId = parent.children[currentNodeIndex + 1]; 
+      var sibling = objectTable[siblingId];
+      return sibling;
+    }
+  }
+}
+
+function previousNode(node) {
   var parent = objectTable[node.parentId];
   var currentNodeIndex = parent.children.indexOf(node.id);
   if (currentNodeIndex == 0) {
     return parent;
   } else {
-    return objectTable[parent.children[currentNodeIndex - 1]];
+    var siblingId = parent.children[currentNodeIndex - 1];
+    var sibling = objectTable[siblingId];
+    // console.log(sibling);
+    if (sibling.children.length > 0) {
+      return objectTable[sibling.children[sibling.children.length - 1]];
+    } else {
+      return sibling; 
+    }
   }
+}
+
+function positionCaretAtStart(node) {
+  var node = $(jq(node.id));
+  var nodeSpan = $('span:first', node);
+  placeCaretAtStart(nodeSpan.get(0));
 }
 
 function positionCaret(node) {

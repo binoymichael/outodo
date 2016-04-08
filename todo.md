@@ -1,7 +1,6 @@
 Todos:
 - delete key in linux/windows m/xs
-- cursor position while deleting nodes
-- Caret navigation
+- Improved caret navigation
 
 Done:
 - Create a basic node on load
@@ -16,6 +15,7 @@ Done:
 - persistence: basic localstorage persistence
 - backspace delete
 - Item alreay has a child. Hitting enter from item create a new child before current child
+- cursor position while deleting nodes
 
 Known bugs:
 
