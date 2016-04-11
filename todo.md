@@ -1,4 +1,8 @@
 Todos:
+- javascript sanitization
+- expand collapse
+- zoom functionality
+- notes functaionality
 - delete key in linux/windows m/xs
 - Improved caret navigation
 

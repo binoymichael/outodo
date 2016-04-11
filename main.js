@@ -32,24 +32,6 @@ function createCaretPlacer(atStart) {
 var placeCaretAtStart = createCaretPlacer(true);
 var placeCaretAtEnd = createCaretPlacer(false);
 
-// function placeCaretAtEnd(el) {
-//     el.focus();
-//     if (typeof window.getSelection != "undefined"
-//             && typeof document.createRange != "undefined") {
-//         var range = document.createRange();
-//         range.selectNodeContents(el);
-//         range.collapse(false);
-//         var sel = window.getSelection();
-//         sel.removeAllRanges();
-//         sel.addRange(range);
-//     } else if (typeof document.body.createTextRange != "undefined") {
-//         var textRange = document.body.createTextRange();
-//         textRange.moveToElementText(el);
-//         textRange.collapse(false);
-//         textRange.select();
-//     }
-// }
-
 var rootNode;
 var objectTable = {};
 
@@ -81,6 +63,7 @@ function Node(data, parentId = null) {
   this.id = ID();
   this.parentId = parentId;
   this.data = data;
+  this.expanded = true;
   this.children = [];
 }
 
@@ -186,17 +169,28 @@ function rerender(nodeId) {
     var span = $('<span />');
     span.attr('contentEditable','true');
     span.text(currentElementObject.data);
+
+    if (currentElementObject.children.length > 0) {
+      var expander = $('<span />');
+      var expanderText = currentElementObject.expanded ? '-' : '+'
+      expander.text(expanderText);
+      expander.addClass('expander');
+    }
+
     currentElement.append(span);
+    currentElement.append(expander);
     giveNodeSomePower(currentElement);
 
     var childTree = $('<ul />');
     currentElement.append(childTree);
 
-    for (let childId of currentElementObject.children) {
-      var childNode = $('<li />');
-      childNode.attr('id', childId);
-      childTree.append(childNode);
-      rerender(childId);
+    if (currentElementObject.expanded) {
+      for (let childId of currentElementObject.children) {
+        var childNode = $('<li />');
+        childNode.attr('id', childId);
+        childTree.append(childNode);
+        rerender(childId);
+      }
     }
   }
 }
@@ -207,28 +201,6 @@ function removeNode(nodeId) {
   node.remove();
 }
 
-// function indentRight(node) {
-//   var nodeId = node.id;
-//   var node = $(jq(nodeId));
-//   var prevNode = node.prev();
-//   node.unbind();
-//   node.remove();
-
-//   var nodeObject = objectTable[nodeId];
-//   var indentWrapper = $('<ul />');
-//   var regeneratedNode = $('<li />');
-//   regeneratedNode.attr('id', nodeId);
-
-//   var span = $('<span />');
-//   span.attr('contentEditable','true');
-//   span.text(nodeObject.data);
-//   regeneratedNode.append(span);
-
-//   indentWrapper.append(regeneratedNode);
-//   prevNode.append(indentWrapper);
-//   giveNodeSomePower(regeneratedNode);
-// }
-
 function store() {
   localStorage['rootNode'] = JSON.stringify(rootNode);
   localStorage['objectTable'] = JSON.stringify(objectTable);
@@ -237,9 +209,15 @@ function store() {
 function giveNodeSomePower(nodeItem) {
   var node = objectTable[nodeItem.attr('id')];
   var nodeSpan = $('span:first', nodeItem);
+  var expander = $('span.expander:first', nodeItem);
+  if (expander.length != 0) {
+    expander.click(function() {
+      node.expanded = !node.expanded;
+      rerender(node.id);
+    });
+  }
 
   placeCaretAtEnd(nodeSpan.get(0));
-  // nodeSpan.focus();
 
   nodeSpan.blur(function() {
     node.data = nodeSpan.text();

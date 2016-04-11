@@ -19,6 +19,16 @@ ul {
   list-style-type: disc;
 }
 
+li {
+  position: relative;
+}
+
+.expander {
+  position: absolute;
+  left: -40px;
+  cursor: pointer; cursor: hand;
+}
+
 .header-cont {
     width:100%;
     position:fixed;
