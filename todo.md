@@ -1,6 +1,6 @@
 Todos:
-- javascript sanitization
 - zoom functionality
+- javascript sanitization
 - notes functaionality
 - delete key in linux/windows m/xs
 - Improved caret navigation

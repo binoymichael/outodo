@@ -219,7 +219,16 @@ function giveNodeSomePower(nodeItem) {
       node.expanded = !node.expanded;
       rerender(node.id);
     });
+
+    nodeSpan.dblclick(function() {
+      node.expanded = !node.expanded;
+      rerender(node.id);
+    });
   }
+
+  nodeSpan.dblclick(function() {
+
+  });
 
   placeCaretAtEnd(nodeSpan.get(0));
 
