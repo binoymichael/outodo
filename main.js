@@ -76,7 +76,7 @@ function createChildFor(parentNode) {
 
 function createNewNode(sibling) {
   if (sibling) {
-    if (sibling.children.length > 0) {
+    if (sibling.children.length > 0 && sibling.expanded) {
       var parent = sibling;
     } else {
       var parent = objectTable[sibling.parentId];
@@ -88,7 +88,7 @@ function createNewNode(sibling) {
   var child = new Node('', parent.id);
 
   if (sibling) {
-    if (sibling.children.length > 0) {
+    if (sibling.children.length > 0 && sibling.expanded) {
       parent.children.splice(0, 0, child.id);
     } else {
       var siblingIndex = parent.children.indexOf(sibling.id);
@@ -111,6 +111,10 @@ function deleteNode(node) {
     rootNode.children = rootNode.children.filter(function(childId) {
       return childId != node.id;
     });
+  }
+
+  for (let childId of node.children) {
+    delete objectTable[childId];
   }
   delete objectTable[node.id];
 }
@@ -235,12 +239,9 @@ function giveNodeSomePower(nodeItem) {
       event.stopPropagation();
       node.data = nodeSpan.text();
       store();
-      // var parentNode = objectTable[node.parentId];
-      // var newNode = createChildFor(parentNode);
       var newNode = createNewNode(node);
       rerender(newNode.parentId);
       positionCaret(newNode);
-      // render(newNode);
     } else if (event.keyCode == TABKEY) {
       event.preventDefault();
       node.data = nodeSpan.text();
@@ -284,7 +285,7 @@ function giveNodeSomePower(nodeItem) {
 }
 
 function nextNode(node) {
-  if (node.children.length > 0) {
+  if (node.children.length > 0 && node.expanded) {
     return objectTable[node.children[0]];
   } else {
     var parent = objectTable[node.parentId];
@@ -316,7 +317,7 @@ function previousNode(node) {
     var siblingId = parent.children[currentNodeIndex - 1];
     var sibling = objectTable[siblingId];
     // console.log(sibling);
-    if (sibling.children.length > 0) {
+    if (sibling.children.length > 0 && sibling.expanded) {
       return objectTable[sibling.children[sibling.children.length - 1]];
     } else {
       return sibling; 

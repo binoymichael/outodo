@@ -1,10 +1,10 @@
 Todos:
 - javascript sanitization
-- expand collapse
 - zoom functionality
 - notes functaionality
 - delete key in linux/windows m/xs
 - Improved caret navigation
+- when enter is pressed in the middle of a text segment -> split node
 
 Done:
 - Create a basic node on load
@@ -20,6 +20,9 @@ Done:
 - backspace delete
 - Item alreay has a child. Hitting enter from item create a new child before current child
 - cursor position while deleting nodes
+- expand collapse
+- expand collapse enter, up down focus stuff
+- When collapsed deleted, delete child elements as well
 
 Known bugs:
 
