@@ -25,6 +25,7 @@ Done:
 - When collapsed deleted, delete child elements as well
 
 Known bugs:
+- Deleting parent completely with children left intact
 
 Enhancements:
 - http://www.webdevbreak.com/episodes/zen-textarea-pure-css

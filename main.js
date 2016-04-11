@@ -102,7 +102,15 @@ function createNewNode(sibling) {
   return child;
 }
 
+function deleteChildren(node) {
+  for (let childId of node.children) {
+    delete objectTable[childId];
+  }
+  node.children = [];
+}
+
 function deleteNode(node) {
+  console.log("deleting" + node.id);
   var parent = objectTable[node.parentId];
   parent.children = parent.children.filter(function(childId) {
     return childId !== node.id;
@@ -141,7 +149,7 @@ function shiftNodeLeft(node) {
   var currentObjectIndex = currentParentObject.children.indexOf(node.id);
   while(currentParentObject.children[currentObjectIndex + 1] !== undefined) {
     var siblingObject = objectTable[currentParentObject.children[currentObjectIndex + 1]];
-    console.log(siblingObject.id);
+    // console.log(siblingObject.id);
     shiftNodeRight(siblingObject);
   }
 
@@ -226,9 +234,6 @@ function giveNodeSomePower(nodeItem) {
     });
   }
 
-  nodeSpan.dblclick(function() {
-
-  });
 
   placeCaretAtEnd(nodeSpan.get(0));
 
@@ -237,7 +242,13 @@ function giveNodeSomePower(nodeItem) {
     store();
   });
 
+  // console.log(nodeSpan.parent());
+  nodeSpan.parent().keydown(function(event) {
+    // console.log(event);
+  });
+
   nodeSpan.keydown(function(event) {
+    // console.log(event);
     var ENTERKEY = 13;
     var TABKEY = 9;
     var BACKSPACE = 8;
@@ -270,14 +281,29 @@ function giveNodeSomePower(nodeItem) {
         }
       }
     } else if (event.keyCode == BACKSPACE) {
+      if (node.children.length > 0 && nodeSpan.text().length == 1) {
+        nodeSpan.text("");
+        positionCaret(node);
+        console.log("do something here");
+        event.preventDefault();
+        event.stopPropagation();
+      }
       if (!nodeSpan.text()) {
-        if (!(node.parentId == rootNode.id && objectTable[rootNode.id].children.length == 1)) {
-          event.preventDefault();
-          var parentId = node.parentId;
-          var closest = previousNode(node);
-          deleteNode(node);
-          rerender(parentId);
-          positionCaret(closest);
+        if ((node.parentId == rootNode.id && objectTable[rootNode.id].children.length == 1)) {
+            console.log("BACKSPACE");
+            event.preventDefault();
+            event.stopPropagation();
+            nodeSpan.text("");
+            node.data = nodeSpan.text();
+            deleteChildren(node);
+            rerender(node.id);
+        } else {
+            event.preventDefault();
+            var parentId = node.parentId;
+            var closest = previousNode(node);
+            deleteNode(node);
+            rerender(parentId);
+            positionCaret(closest);
         }
       }
     } else if (event.keyCode == UPKEY) {
