@@ -23,6 +23,10 @@ li {
   position: relative;
 }
 
+/*span {
+  display: inline-block;
+} 
+*/
 .expander {
   position: absolute;
   left: -40px;

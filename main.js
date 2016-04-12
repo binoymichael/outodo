@@ -213,6 +213,10 @@ function removeNode(nodeId) {
   node.remove();
 }
 
+function isOnlyMainBranch(node) {
+  return (node.parentId == rootNode.id && objectTable[rootNode.id].children.length == 1)
+}
+
 function store() {
   localStorage['rootNode'] = JSON.stringify(rootNode);
   localStorage['objectTable'] = JSON.stringify(objectTable);
@@ -281,24 +285,37 @@ function giveNodeSomePower(nodeItem) {
         }
       }
     } else if (event.keyCode == BACKSPACE) {
-      if (node.children.length > 0 && nodeSpan.text().length == 1) {
-        nodeSpan.text("");
-        positionCaret(node);
-        console.log("do something here");
-        event.preventDefault();
-        event.stopPropagation();
-      }
-      if (!nodeSpan.text()) {
-        if ((node.parentId == rootNode.id && objectTable[rootNode.id].children.length == 1)) {
-            console.log("BACKSPACE");
-            event.preventDefault();
-            event.stopPropagation();
+      if (node.children.length > 0) {
+        if (nodeSpan.text().length <= 1) {
+          if (nodeSpan.text().charCodeAt(0) == 128) {
+              event.preventDefault();
+              event.stopPropagation();
+              if (isOnlyMainBranch(node)) {
+                  nodeSpan.text("");
+                  node.data = nodeSpan.text();
+                  deleteChildren(node);
+                  rerender(node.id);
+              } else {
+                  var parentId = node.parentId;
+                  var closest = previousNode(node);
+                  deleteNode(node);
+                  rerender(parentId);
+                  positionCaret(closest);
+              }
+          } else {
+            nodeSpan.text("\200b");
+            positionCaret(node);
+          }
+        }
+      } else if (!nodeSpan.text()) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (isOnlyMainBranch(node)) {
             nodeSpan.text("");
             node.data = nodeSpan.text();
             deleteChildren(node);
             rerender(node.id);
         } else {
-            event.preventDefault();
             var parentId = node.parentId;
             var closest = previousNode(node);
             deleteNode(node);

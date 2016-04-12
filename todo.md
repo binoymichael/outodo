@@ -1,7 +1,8 @@
 Todos:
 - zoom functionality
-- javascript sanitization
 - notes functaionality
+- mark item as complete
+- javascript sanitization
 - delete key in linux/windows m/xs
 - Improved caret navigation
 - when enter is pressed in the middle of a text segment -> split node
