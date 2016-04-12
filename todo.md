@@ -1,7 +1,7 @@
 Todos:
-- zoom functionality
-- notes functaionality
 - mark item as complete
+- delete long trees. make sure dependents are destroyed with tree traversal
+- notes functaionality
 - javascript sanitization
 - delete key in linux/windows m/xs
 - Improved caret navigation
@@ -24,6 +24,7 @@ Done:
 - expand collapse
 - expand collapse enter, up down focus stuff
 - When collapsed deleted, delete child elements as well
+- zoom functionality
 
 Known bugs:
 - Deleting parent completely with children left intact

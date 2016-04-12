@@ -26,6 +26,22 @@
   line-height: 27px;
 }
 
+.pending {
+  position: absolute;
+  left: -40px;
+  cursor: pointer; cursor: hand;
+  font-style: normal;
+  color: #D3D3D3;
+}
+
+.complete {
+  position: absolute;
+  left: -40px;
+  cursor: pointer; cursor: hand;
+  font-style: bold;
+  color: #000080;
+}
+
 .grey {
   color: gray;
   margin-right: 10px;
@@ -39,13 +55,13 @@ li {
   position: relative;
 }
 
-/*span {
-  display: inline-block;
-} 
-*/
+.strike {
+  text-decoration: line-through;
+}
+
 .expander {
   position: absolute;
-  left: -40px;
+  left: -70px;
   cursor: pointer; cursor: hand;
 }
 

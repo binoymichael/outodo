@@ -96,6 +96,7 @@ function Node(data, parentId = null) {
   this.parentId = parentId;
   this.data = data;
   this.expanded = true;
+  this.completed = false;
   this.children = [];
 }
 
@@ -221,8 +222,17 @@ function rerender(nodeId) {
       expander.addClass('expander');
     }
 
+    var checkBoxSpan = $('<span class="check"/>');
+    checkBoxSpan.text("\u2611");
+    checkBoxSpan.addClass(currentElementObject.completed ? 'complete' : 'pending');
+
+    if (currentElementObject.completed) {
+      span.addClass('strike');
+    }
+
     currentElement.append(span);
     currentElement.append(expander);
+    currentElement.append(checkBoxSpan);
     giveNodeSomePower(currentElement);
 
     var childTree = $('<ul />');
@@ -302,13 +312,22 @@ function giveNodeSomePower(nodeItem) {
   if (expander.length != 0) {
     expander.click(function() {
       node.expanded = !node.expanded;
+      store();
       rerender(node.id);
     });
   }
 
+  var checkBoxSpan = $('span.check:first', nodeItem);
+  checkBoxSpan.click(function() {
+    node.completed = !node.completed; 
+    store();
+    rerender(node.id);
+  });
+
   nodeSpan.dblclick(function() {
     var viewRootNodeId = $(this).closest('li').attr('id');
     changeViewPort(viewRootNodeId);
+    store();
   });
 
 
