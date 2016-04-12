@@ -44,9 +44,7 @@ function ancestors(node, accumulator = []) {
     return accumulator;
   } else {
     var parent = objectTable[node.parentId];
-    if (parent.parentId !== null) {
-      accumulator.unshift(parent);
-    }
+    accumulator.unshift(parent);
     return ancestors(parent, accumulator);
   }
 }
@@ -251,7 +249,11 @@ function changeViewPort(viewRootNodeId) {
       changeViewPort(node.id);
       // console.log('hello');
     });
-    navSegment.text(node.data);
+    if (node.parentId == null) {
+      navSegment.text('#');
+    } else {
+      navSegment.text(node.data);
+    }
     navBar.append(navSegment);
     navBar.append($('<span class="grey">></span>'));
   }
