@@ -34,6 +34,7 @@ var placeCaretAtEnd = createCaretPlacer(false);
 
 var rootNode;
 var objectTable = {};
+var viewRootNode;
 
 function addToObjectTable(node) {
   objectTable[node.id] = node;
@@ -52,21 +53,42 @@ function ancestors(node, accumulator = []) {
 if (localStorage['rootNode'] == undefined) {
   rootNode = new Node(null, null);
   addToObjectTable(rootNode);
+  viewRootNode = rootNode;
 } else {
   rootNode = JSON.parse(localStorage['rootNode']);
   objectTable = JSON.parse(localStorage['objectTable']);
+  viewRootNode = objectTable[JSON.parse(localStorage['viewRootNodeId'])];
 }
 
-var viewRootNode = rootNode;
 var container = $('#container');
+// Refactor this. Some trouble when we remove this
 var navBar = $('<div />');
 navBar.attr('class', 'navbar');
 navBar.append($('<span class="grey">></span>'));
+var navBarSegments = ancestors(viewRootNode);
+navBarSegments.push(viewRootNode);
+for (let node of navBarSegments) {
+  var navSegment = $('<a class="grey" href="#"/>')
+  navSegment.click(function(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    changeViewPort(node.id);
+    // console.log('hello');
+  });
+  if (node.parentId == null) {
+    navSegment.text('#');
+  } else {
+    navSegment.text(node.data);
+  }
+  navBar.append(navSegment);
+  navBar.append($('<span class="grey">></span>'));
+}
+container.append(navBar);
 var rootUL = $('<ul />');
 rootUL.attr('id', viewRootNode.id);
 rootUL.attr('class', 'main');
-container.append(navBar);
 container.append(rootUL);
+
 
 
 function Node(data, parentId = null) {
@@ -228,26 +250,29 @@ function isOnlyMainBranch(node) {
 }
 
 function store() {
+  localStorage['viewRootNodeId'] = JSON.stringify(viewRootNode.id);
   localStorage['rootNode'] = JSON.stringify(rootNode);
   localStorage['objectTable'] = JSON.stringify(objectTable);
 }
 
 function changeViewPort(viewRootNodeId) {
-  var viewRootNode = objectTable[viewRootNodeId];
+  var viewRootNodeElect = objectTable[viewRootNodeId];
+  if (!(viewRootNodeElect.children.length > 0)) {
+    return;
+  }
+  viewRootNode = viewRootNodeElect;
   var container = $('#container');
   container.empty();
   var navBar = $('<div />');
   navBar.attr('class', 'navbar');
   navBar.append($('<span class="grey">></span>'));
   var navBarSegments = ancestors(viewRootNode);
-  navBarSegments.push(viewRootNode);
   for (let node of navBarSegments) {
     var navSegment = $('<a class="grey" href="#"/>')
     navSegment.click(function(event) {
       event.preventDefault();
       event.stopPropagation();
       changeViewPort(node.id);
-      // console.log('hello');
     });
     if (node.parentId == null) {
       navSegment.text('#');
@@ -257,6 +282,9 @@ function changeViewPort(viewRootNodeId) {
     navBar.append(navSegment);
     navBar.append($('<span class="grey">></span>'));
   }
+  var navSegment = $('<span class="grey" />');
+  navSegment.text(viewRootNode.data);
+  navBar.append(navSegment);
   container.append(navBar);
 
   var rootUL = $('<ul />');
@@ -291,13 +319,7 @@ function giveNodeSomePower(nodeItem) {
     store();
   });
 
-  // console.log(nodeSpan.parent());
-  nodeSpan.parent().keydown(function(event) {
-    // console.log(event);
-  });
-
   nodeSpan.keydown(function(event) {
-    // console.log(event);
     var ENTERKEY = 13;
     var TABKEY = 9;
     var BACKSPACE = 8;
@@ -413,7 +435,6 @@ function previousNode(node) {
   } else {
     var siblingId = parent.children[currentNodeIndex - 1];
     var sibling = objectTable[siblingId];
-    // console.log(sibling);
     if (sibling.children.length > 0 && sibling.expanded) {
       return objectTable[sibling.children[sibling.children.length - 1]];
     } else {
@@ -459,7 +480,8 @@ if (localStorage['rootNode'] == undefined) {
   var firstNode = createNewNode(null)
   render(firstNode, true);
 } else {
-  rerender(viewRootNode.id);
+  changeViewPort(viewRootNode.id);
+  // rerender(viewRootNode.id);
 }
 
 
@@ -471,6 +493,7 @@ $('#debug').click(function() {
 $('#reset').click(function() {
   delete localStorage['rootNode'];
   delete localStorage['objectTable'];
+  delete localStorage['viewRootNodeId'];
   window.location.reload();
 });
 
@@ -484,7 +507,6 @@ $('#level').click(function() {
   navBar.attr('class', 'navbar');
   navBar.append($('<span class="grey">></span>'));
   var navBarSegments = ancestors(viewRootNode);
-  navBarSegments.push(viewRootNode);
   for (let node of navBarSegments) {
     var navSegment = $('<a class="grey" href="#"/>');
     navSegment.click(function(event) {
@@ -496,6 +518,11 @@ $('#level').click(function() {
     navBar.append(navSegment);
     navBar.append($('<span class="grey">></span>'));
   }
+
+  var navSegment = $('<span class="grey" />');
+  navSegment.text(viewRootNode.data);
+  navBar.append(navSegment);
+
   container.append(navBar);
 
   var rootUL = $('<ul />');
