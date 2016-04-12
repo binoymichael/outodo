@@ -39,24 +39,36 @@ function addToObjectTable(node) {
   objectTable[node.id] = node;
 };
 
+function ancestors(node, accumulator = []) {
+  if (node.parentId == null) {
+    return accumulator;
+  } else {
+    var parent = objectTable[node.parentId];
+    if (parent.parentId !== null) {
+      accumulator.unshift(parent);
+    }
+    return ancestors(parent, accumulator);
+  }
+}
+
 if (localStorage['rootNode'] == undefined) {
   rootNode = new Node(null, null);
   addToObjectTable(rootNode);
-  var container = $('#container');
-  var rootUL = $('<ul />');
-  rootUL.attr('id', rootNode.id);
-  rootUL.attr('class', 'main');
-  container.append(rootUL)
 } else {
   rootNode = JSON.parse(localStorage['rootNode']);
   objectTable = JSON.parse(localStorage['objectTable']);
-  var container = $('#container');
-  var rootUL = $('<ul />');
-  rootUL.attr('id', rootNode.id);
-  rootUL.attr('class', 'main');
-  container.append(rootUL)
 }
 
+var viewRootNode = rootNode;
+var container = $('#container');
+var navBar = $('<div />');
+navBar.attr('class', 'navbar');
+navBar.append($('<span class="grey">></span>'));
+var rootUL = $('<ul />');
+rootUL.attr('id', viewRootNode.id);
+rootUL.attr('class', 'main');
+container.append(navBar);
+container.append(rootUL);
 
 
 function Node(data, parentId = null) {
@@ -82,7 +94,7 @@ function createNewNode(sibling) {
       var parent = objectTable[sibling.parentId];
     }
   } else {
-    var parent = objectTable[rootNode.id];
+    var parent = objectTable[viewRootNode.id];
   }
 
   var child = new Node('', parent.id);
@@ -115,8 +127,8 @@ function deleteNode(node) {
   parent.children = parent.children.filter(function(childId) {
     return childId !== node.id;
   });
-  if (node.parentId == rootNode.id) {
-    rootNode.children = rootNode.children.filter(function(childId) {
+  if (node.parentId == viewRootNode.id) {
+    viewRootNode.children = viewRootNode.children.filter(function(childId) {
       return childId != node.id;
     });
   }
@@ -214,12 +226,43 @@ function removeNode(nodeId) {
 }
 
 function isOnlyMainBranch(node) {
-  return (node.parentId == rootNode.id && objectTable[rootNode.id].children.length == 1)
+  return (node.parentId == viewRootNode.id && objectTable[viewRootNode.id].children.length == 1)
 }
 
 function store() {
   localStorage['rootNode'] = JSON.stringify(rootNode);
   localStorage['objectTable'] = JSON.stringify(objectTable);
+}
+
+function changeViewPort(viewRootNodeId) {
+  var viewRootNode = objectTable[viewRootNodeId];
+  var container = $('#container');
+  container.empty();
+  var navBar = $('<div />');
+  navBar.attr('class', 'navbar');
+  navBar.append($('<span class="grey">></span>'));
+  var navBarSegments = ancestors(viewRootNode);
+  navBarSegments.push(viewRootNode);
+  for (let node of navBarSegments) {
+    var navSegment = $('<a class="grey" href="#"/>')
+    navSegment.click(function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      changeViewPort(node.id);
+      // console.log('hello');
+    });
+    navSegment.text(node.data);
+    navBar.append(navSegment);
+    navBar.append($('<span class="grey">></span>'));
+  }
+  container.append(navBar);
+
+  var rootUL = $('<ul />');
+  rootUL.attr('id', viewRootNodeId);
+  rootUL.attr('class', 'main');
+  container.append(rootUL)
+  rerender(viewRootNodeId);
+
 }
 
 function giveNodeSomePower(nodeItem) {
@@ -231,12 +274,12 @@ function giveNodeSomePower(nodeItem) {
       node.expanded = !node.expanded;
       rerender(node.id);
     });
-
-    nodeSpan.dblclick(function() {
-      node.expanded = !node.expanded;
-      rerender(node.id);
-    });
   }
+
+  nodeSpan.dblclick(function() {
+    var viewRootNodeId = $(this).closest('li').attr('id');
+    changeViewPort(viewRootNodeId);
+  });
 
 
   placeCaretAtEnd(nodeSpan.get(0));
@@ -271,7 +314,7 @@ function giveNodeSomePower(nodeItem) {
       node.data = nodeSpan.text();
       store();
       if (event.shiftKey) {
-        if (node.parentId !== rootNode.id) {
+        if (node.parentId !== viewRootNode.id) {
           shiftNodeLeft(node);
           rerender(objectTable[node.id].parentId);
           positionCaret(node);
@@ -414,7 +457,7 @@ if (localStorage['rootNode'] == undefined) {
   var firstNode = createNewNode(null)
   render(firstNode, true);
 } else {
-  rerender(rootNode.id);
+  rerender(viewRootNode.id);
 }
 
 
@@ -429,3 +472,33 @@ $('#reset').click(function() {
   window.location.reload();
 });
 
+
+$('#level').click(function() {
+  var viewRootNodeId = $('li').first().attr('id');
+  var viewRootNode = objectTable[viewRootNodeId];
+  var container = $('#container');
+  container.empty();
+  var navBar = $('<div />');
+  navBar.attr('class', 'navbar');
+  navBar.append($('<span class="grey">></span>'));
+  var navBarSegments = ancestors(viewRootNode);
+  navBarSegments.push(viewRootNode);
+  for (let node of navBarSegments) {
+    var navSegment = $('<a class="grey" href="#"/>');
+    navSegment.click(function(event) {
+      event.preventDefault();
+      event.stopPropagation();
+      console.log('hello');
+    });
+    navSegment.text(node.data);
+    navBar.append(navSegment);
+    navBar.append($('<span class="grey">></span>'));
+  }
+  container.append(navBar);
+
+  var rootUL = $('<ul />');
+  rootUL.attr('id', viewRootNodeId);
+  rootUL.attr('class', 'main');
+  container.append(rootUL)
+  rerender(viewRootNodeId);
+});
