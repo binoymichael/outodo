@@ -1,5 +1,6 @@
 Todos:
-- mark item as complete
+- rearrange items
+- clear completed items
 - delete long trees. make sure dependents are destroyed with tree traversal
 - notes functaionality
 - javascript sanitization
@@ -25,6 +26,7 @@ Done:
 - expand collapse enter, up down focus stuff
 - When collapsed deleted, delete child elements as well
 - zoom functionality
+- mark item as complete
 
 Known bugs:
 - Deleting parent completely with children left intact

@@ -205,10 +205,21 @@ function rerender(nodeId) {
 
   if (currentElement.is('ul')) {
     for (let childId of currentElementObject.children) {
-      var childNode = $('<li />');
+      let childNode = $('<li />');
       childNode.attr('id', childId);
+
+      childNode.on('click', function(e) { 
+        if (e.target !== this) {
+          return;
+        }
+        // console.log(childNode.attr('id'));
+        var nodeSpan = $('span:first', childNode);
+        placeCaretAtEnd(nodeSpan.get(0));
+      });
+      
       currentElement.append(childNode);
       rerender(childId);
+      makeListOrderable2();
     }
   } else {
     var span = $('<span />');
@@ -244,10 +255,68 @@ function rerender(nodeId) {
         childNode.attr('id', childId);
         childTree.append(childNode);
         rerender(childId);
+        makeListOrderable2();
       }
     }
   }
+
+  // $('#container ul').sortable({
+  //   connectWith: "#container ul",
+  //   placeholderClass: 'myplaceholder fade'
+  // });
 }
+
+function makeListOrderable2() {
+  $("#container ul").sortable({
+        connectWith: "#container ul",
+        disableIEFix: true,
+        // handle: 'li',
+        placeholderClass: 'myplaceholder fade'
+  });
+}
+
+function makeListOrderable() {
+  // console.log('first time');
+  // console.log($("#container ul")._data);
+  // console.log($('#container ul').sortable);
+  // $('#container ul').sortable('destroy');
+  $("#container ul").sortable({
+        connectWith: "#container ul",
+        disableIEFix: true,
+        // handle: 'li',
+        placeholderClass: 'myplaceholder fade'
+  }).bind('sortupdate', function(e, ui) {
+    var startParentId = ui.startparent.get(0).id;
+    var startParentObject = objectTable[startParentId];
+    console.log(startParentObject.children);
+    startParentObject.children.splice(ui.oldindex, 1);
+    console.log(startParentObject.children);
+    var itemId = ui.item.get(0).id;
+    var endParentId = ui.endparent.get(0).id;
+    var endParentObject = objectTable[endParentId];
+    console.log(endParentObject.children);
+    endParentObject.children.splice(ui.index, 0, itemId);
+    console.log(endParentObject.children);
+
+    rerender(startParentId);
+    if (startParentId !== endParentId) {
+        rerender(endParentId);
+    }
+    makeListOrderable2();
+    // This event is triggered when the user stopped sorting and the DOM position has changed.
+
+    // ui.item contains the current dragged element.
+    // ui.index contains the new index of the dragged element (considering only list items)
+    // ui.oldindex contains the old index of the dragged element (considering only list items)
+    // ui.elementIndex contains the new index of the dragged element (considering all items within sortable)
+    // ui.oldElementIndex contains the old index of the dragged element (considering all items within sortable)
+    // ui.startparent contains the element that the dragged item comes from
+    // ui.endparent contains the element that the dragged item was added to (new parent)
+
+    
+  });
+
+};
 
 function removeNode(nodeId) {
   var node = $(jq(nodeId));
@@ -300,9 +369,9 @@ function changeViewPort(viewRootNodeId) {
   var rootUL = $('<ul />');
   rootUL.attr('id', viewRootNodeId);
   rootUL.attr('class', 'main');
-  container.append(rootUL)
+  container.append(rootUL);
   rerender(viewRootNodeId);
-
+  makeListOrderable2();
 }
 
 function giveNodeSomePower(nodeItem) {
@@ -314,6 +383,7 @@ function giveNodeSomePower(nodeItem) {
       node.expanded = !node.expanded;
       store();
       rerender(node.id);
+      makeListOrderable2();
     });
   }
 
@@ -322,6 +392,7 @@ function giveNodeSomePower(nodeItem) {
     node.completed = !node.completed; 
     store();
     rerender(node.id);
+    makeListOrderable2();
   });
 
   nodeSpan.dblclick(function() {
@@ -351,6 +422,7 @@ function giveNodeSomePower(nodeItem) {
       store();
       var newNode = createNewNode(node);
       rerender(newNode.parentId);
+      makeListOrderable2();
       positionCaret(newNode);
     } else if (event.keyCode == TABKEY) {
       event.preventDefault();
@@ -360,6 +432,7 @@ function giveNodeSomePower(nodeItem) {
         if (node.parentId !== viewRootNode.id) {
           shiftNodeLeft(node);
           rerender(objectTable[node.id].parentId);
+          makeListOrderable2();
           positionCaret(node);
         } 
       } else {
@@ -367,6 +440,7 @@ function giveNodeSomePower(nodeItem) {
           shiftNodeRight(node);
           removeNode(node.id);
           rerender(objectTable[node.id].parentId);
+          makeListOrderable2();
           positionCaret(node);
         }
       }
@@ -381,11 +455,13 @@ function giveNodeSomePower(nodeItem) {
                   node.data = nodeSpan.text();
                   deleteChildren(node);
                   rerender(node.id);
+                  makeListOrderable2();
               } else {
                   var parentId = node.parentId;
                   var closest = previousNode(node);
                   deleteNode(node);
                   rerender(parentId);
+                  makeListOrderable2();
                   positionCaret(closest);
               }
           } else {
@@ -401,11 +477,13 @@ function giveNodeSomePower(nodeItem) {
             node.data = nodeSpan.text();
             deleteChildren(node);
             rerender(node.id);
+            makeListOrderable2();
         } else {
             var parentId = node.parentId;
             var closest = previousNode(node);
             deleteNode(node);
             rerender(parentId);
+            makeListOrderable2();
             positionCaret(closest);
         }
       }
@@ -498,8 +576,10 @@ function render(node, first = false) {
 if (localStorage['rootNode'] == undefined) {
   var firstNode = createNewNode(null)
   render(firstNode, true);
+  makeListOrderable();
 } else {
   changeViewPort(viewRootNode.id);
+  makeListOrderable();
   // rerender(viewRootNode.id);
 }
 

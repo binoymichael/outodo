@@ -73,6 +73,10 @@ li {
 
 }
 
+.myplaceholder {
+  color: red;
+}
+
 [contenteditable="true"]:active,
 [contenteditable="true"]:focus{
   border:none;
