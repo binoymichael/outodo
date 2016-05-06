@@ -206,6 +206,7 @@ function rerender(nodeId) {
   if (currentElement.is('ul')) {
     for (let childId of currentElementObject.children) {
       let childNode = $('<li />');
+      // console.log(childId);
       childNode.attr('id', childId);
 
       childNode.on('click', function(e) { 
@@ -216,10 +217,10 @@ function rerender(nodeId) {
         var nodeSpan = $('span:first', childNode);
         placeCaretAtEnd(nodeSpan.get(0));
       });
-      
+
       currentElement.append(childNode);
       rerender(childId);
-      makeListOrderable2();
+      // makeListOrderable2();
     }
   } else {
     var span = $('<span />');
@@ -251,11 +252,19 @@ function rerender(nodeId) {
 
     if (currentElementObject.expanded) {
       for (let childId of currentElementObject.children) {
-        var childNode = $('<li />');
+        let childNode = $('<li />');
         childNode.attr('id', childId);
+        childNode.on('click', function(e) { 
+          if (e.target !== this) {
+            return;
+          }
+          // console.log(childNode.attr('id'));
+          var nodeSpan = $('span:first', childNode);
+          placeCaretAtEnd(nodeSpan.get(0));
+        });
         childTree.append(childNode);
         rerender(childId);
-        makeListOrderable2();
+        // makeListOrderable2();
       }
     }
   }
@@ -267,34 +276,54 @@ function rerender(nodeId) {
 }
 
 function makeListOrderable2() {
-  $("#container ul").sortable({
+  // return;
+  // $('#container ul').sortable('destroy');
+  console.log('unbind');
+  $("#container ul").sortable(
+    {
         connectWith: "#container ul",
-        disableIEFix: true,
-        // handle: 'li',
         placeholderClass: 'myplaceholder fade'
-  });
+  }).unbind('sortupdate');
+  makeListOrderable();
+  // $("#container ul").sortable({
+  //       connectWith: "#container ul",
+  //       placeholderClass: 'myplaceholder fade'
+  // });
+}
+
+function reArrangeItems(ui) {
+  console.log(ui);
 }
 
 function makeListOrderable() {
-  // console.log('first time');
+  // return;
+  console.log('bind');
   // console.log($("#container ul")._data);
   // console.log($('#container ul').sortable);
   // $('#container ul').sortable('destroy');
   $("#container ul").sortable({
         connectWith: "#container ul",
-        disableIEFix: true,
-        // handle: 'li',
         placeholderClass: 'myplaceholder fade'
   }).bind('sortupdate', function(e, ui) {
-    var startParentId = ui.startparent.get(0).id;
+    // reArrangeItems(ui);
+    console.log(ui);
+    if (ui.startparent.get(0).parentElement.tagName == 'DIV') {
+      var startParentId = ui.startparent.get(0).id;
+    } else {
+      var startParentId = ui.startparent.get(0).parentElement.id;
+    }
     var startParentObject = objectTable[startParentId];
     console.log(startParentObject.children);
     startParentObject.children.splice(ui.oldindex, 1);
-    console.log(startParentObject.children);
+
     var itemId = ui.item.get(0).id;
-    var endParentId = ui.endparent.get(0).id;
+
+    if (ui.endparent.get(0).parentElement.tagName == 'DIV') {
+      var endParentId = ui.endparent.get(0).id;
+    } else {
+      var endParentId = ui.endparent.get(0).parentElement.id;
+    }
     var endParentObject = objectTable[endParentId];
-    console.log(endParentObject.children);
     endParentObject.children.splice(ui.index, 0, itemId);
     console.log(endParentObject.children);
 
@@ -302,7 +331,7 @@ function makeListOrderable() {
     if (startParentId !== endParentId) {
         rerender(endParentId);
     }
-    makeListOrderable2();
+
     // This event is triggered when the user stopped sorting and the DOM position has changed.
 
     // ui.item contains the current dragged element.
@@ -579,7 +608,7 @@ if (localStorage['rootNode'] == undefined) {
   makeListOrderable();
 } else {
   changeViewPort(viewRootNode.id);
-  makeListOrderable();
+  // makeListOrderable();
   // rerender(viewRootNode.id);
 }
 
