@@ -35,6 +35,7 @@ var placeCaretAtEnd = createCaretPlacer(false);
 var rootNode;
 var objectTable = {};
 var viewRootNode;
+var showCompleted;
 
 function addToObjectTable(node) {
   objectTable[node.id] = node;
@@ -54,10 +55,12 @@ if (localStorage['rootNode'] == undefined) {
   rootNode = new Node(null, null);
   addToObjectTable(rootNode);
   viewRootNode = rootNode;
+  showCompleted = '1';
 } else {
   rootNode = JSON.parse(localStorage['rootNode']);
   objectTable = JSON.parse(localStorage['objectTable']);
   viewRootNode = objectTable[JSON.parse(localStorage['viewRootNodeId'])];
+  showCompleted = localStorage['showCompleted'] || '1';
 }
 
 var container = $('#container');
@@ -73,7 +76,6 @@ for (let node of navBarSegments) {
     event.preventDefault();
     event.stopPropagation();
     changeViewPort(node.id);
-    // console.log('hello');
   });
   if (node.parentId == null) {
     navSegment.text('#');
@@ -182,7 +184,6 @@ function shiftNodeLeft(node) {
   var currentObjectIndex = currentParentObject.children.indexOf(node.id);
   while(currentParentObject.children[currentObjectIndex + 1] !== undefined) {
     var siblingObject = objectTable[currentParentObject.children[currentObjectIndex + 1]];
-    // console.log(siblingObject.id);
     shiftNodeRight(siblingObject);
   }
 
@@ -205,15 +206,17 @@ function rerender(nodeId) {
 
   if (currentElement.is('ul')) {
     for (let childId of currentElementObject.children) {
+      if (showCompleted == '0' && objectTable[childId].completed) {
+        continue;
+      }
+
       let childNode = $('<li />');
-      // console.log(childId);
       childNode.attr('id', childId);
 
       childNode.on('click', function(e) { 
         if (e.target !== this) {
           return;
         }
-        // console.log(childNode.attr('id'));
         var nodeSpan = $('span:first', childNode);
         placeCaretAtEnd(nodeSpan.get(0));
       });
@@ -252,13 +255,15 @@ function rerender(nodeId) {
 
     if (currentElementObject.expanded) {
       for (let childId of currentElementObject.children) {
+        if (showCompleted == '0' && objectTable[childId].completed) {
+          continue;
+        }
         let childNode = $('<li />');
         childNode.attr('id', childId);
         childNode.on('click', function(e) { 
           if (e.target !== this) {
             return;
           }
-          // console.log(childNode.attr('id'));
           var nodeSpan = $('span:first', childNode);
           placeCaretAtEnd(nodeSpan.get(0));
         });
@@ -278,7 +283,7 @@ function rerender(nodeId) {
 function makeListOrderable2() {
   // return;
   // $('#container ul').sortable('destroy');
-  console.log('unbind');
+  // console.log('unbind');
   $("#container ul").sortable(
     {
         connectWith: "#container ul",
@@ -291,13 +296,10 @@ function makeListOrderable2() {
   // });
 }
 
-function reArrangeItems(ui) {
-  console.log(ui);
-}
 
 function makeListOrderable() {
   // return;
-  console.log('bind');
+  // console.log('bind');
   // console.log($("#container ul")._data);
   // console.log($('#container ul').sortable);
   // $('#container ul').sortable('destroy');
@@ -305,15 +307,13 @@ function makeListOrderable() {
         connectWith: "#container ul",
         placeholderClass: 'myplaceholder fade'
   }).bind('sortupdate', function(e, ui) {
-    // reArrangeItems(ui);
-    console.log(ui);
     if (ui.startparent.get(0).parentElement.tagName == 'DIV') {
       var startParentId = ui.startparent.get(0).id;
     } else {
       var startParentId = ui.startparent.get(0).parentElement.id;
     }
     var startParentObject = objectTable[startParentId];
-    console.log(startParentObject.children);
+    // console.log(startParentObject.children);
     startParentObject.children.splice(ui.oldindex, 1);
 
     var itemId = ui.item.get(0).id;
@@ -325,7 +325,7 @@ function makeListOrderable() {
     }
     var endParentObject = objectTable[endParentId];
     endParentObject.children.splice(ui.index, 0, itemId);
-    console.log(endParentObject.children);
+    // console.log(endParentObject.children);
 
     rerender(startParentId);
     if (startParentId !== endParentId) {
@@ -361,6 +361,7 @@ function store() {
   localStorage['viewRootNodeId'] = JSON.stringify(viewRootNode.id);
   localStorage['rootNode'] = JSON.stringify(rootNode);
   localStorage['objectTable'] = JSON.stringify(objectTable);
+  localStorage['showCompleted'] = showCompleted;
 }
 
 function changeViewPort(viewRootNodeId) {
@@ -611,6 +612,27 @@ if (localStorage['rootNode'] == undefined) {
   // makeListOrderable();
   // rerender(viewRootNode.id);
 }
+
+
+if (showCompleted == '1') {
+  $('#toggleCompleted').text('Hide Completed');
+} else {
+  $('#toggleCompleted').text('Show Completed');
+}
+
+$('#toggleCompleted').click(function() {
+  if (showCompleted == '1') {
+    showCompleted = '0';
+    store();
+    changeViewPort(viewRootNode.id);
+    $('#toggleCompleted').text('Show Completed');
+  } else {
+    showCompleted = '1';
+    store();
+    changeViewPort(viewRootNode.id);
+    $('#toggleCompleted').text('Hide Completed');
+  }
+});
 
 
 $('#debug').click(function() {
