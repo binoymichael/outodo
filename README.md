@@ -1,7 +1,7 @@
 # Outliner tool
 
 - Crude prototype created using plain JS and jQuery. 
-- Demo - floating-meadow-30935.herokuapp.com
+- Demo - https://floating-meadow-30935.herokuapp.com
 - Use a modern framework to flesh it out into a complete project
 
 #Usage
